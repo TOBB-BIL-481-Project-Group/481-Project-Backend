@@ -47,6 +47,15 @@ def deleteFile(fileName):
         return "Successfully deleted", 200
     else:
         return "File not found", 404
+    
+@app.route("/uploadCode/<userId>", methods=["POST"])
+def upload_code(userId):
+    if 'codeFile' in request.files:
+        code_file = request.files["codeFile"]
+        print(code_file.filename + " user id: " + userId)
+        return userId, 200
+    
+    return "Code is not uploaded", 400
 
 
 @app.route("/createFile", methods=["POST"])
