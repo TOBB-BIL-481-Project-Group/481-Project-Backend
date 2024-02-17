@@ -223,8 +223,8 @@ def create_file():
         full_zip_path = zip_folder_name + "/" + zip_filename
         shutil.make_archive(full_zip_path, "zip", "createdFolders/" + user_specific_id)
 
-        if os.path.exists("createdFolders/" + user_specific_id):
-            shutil.rmtree("createdFolders/" + user_specific_id)
+        #if os.path.exists("createdFolders/" + user_specific_id):
+        #    shutil.rmtree("createdFolders/" + user_specific_id)
 
     except Exception as e:
         print("File zipping error: ", e)
