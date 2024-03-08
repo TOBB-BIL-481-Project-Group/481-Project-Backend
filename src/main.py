@@ -6,6 +6,7 @@ import uuid
 import shutil
 import time
 import random
+import subprocess
 
 sys.path.append("./creations")
 from creations import (
@@ -52,7 +53,42 @@ def deleteFile(fileName):
 def upload_code(userId):
     if 'codeFile' in request.files:
         code_file = request.files["codeFile"]
-        print(code_file.filename + " user id: " + userId)
+        folder_name = "./createdFolders/" + userId
+        code_file.save("./createdFolders/"+str(userId)+"/"+code_file.filename)
+        files=os.listdir(folder_name)
+        compile_string='g++ ' +folder_name+"/"+code_file.filename+' -o ' + 'result'
+        os.system(compile_string)
+        for file_name in files:
+            file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
+            if(file_extension==".out"):
+                continue
+            if(file_extension==".cpp"):
+                continue
+            new_name = file_name_without_extension + ".out"
+            new_path="input.txt"
+            print(userId+" Path: "+new_path)
+            shutil.copy(folder_name+"/"+file_name,new_path)
+            #burada kodu derle ve calistir outa yazilan seyi de yeni isme kaydet. sonra dosyalari zipe at sonra sil!...
+            run_string='./result'
+            os.system(run_string)
+            shutil.copy("output.txt",folder_name+"/"+new_name)
+            
+        #print(code_file.filename + " user id: " + userId)
+        for file_name in files:
+            file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
+            if(file_extension==".cpp"):
+                os.remove(folder_name+"/"+file_name)
+                break
+        zip_filename = "Inputs"
+        zip_folder_name = "createdZips/" + userId
+        if not os.path.exists(zip_folder_name):
+            os.makedirs(zip_folder_name)
+
+        full_zip_path = zip_folder_name + "/" + zip_filename
+        shutil.make_archive(full_zip_path, "zip", "createdFolders/" + userId)
+
+        if os.path.exists("createdFolders/" + userId):
+            shutil.rmtree("createdFolders/" + userId)
         return userId, 200
     
     return "Code is not uploaded", 400
@@ -214,23 +250,23 @@ def create_file():
         clear_folders(folder_name)
         return "Input creation or file creation error:  " + str(e), 404
 
-    try:
-        zip_filename = "Inputs"
-        zip_folder_name = "createdZips/" + user_specific_id
-        if not os.path.exists(zip_folder_name):
-            os.makedirs(zip_folder_name)
+    #try:
+        #zip_filename = "Inputs"
+        #zip_folder_name = "createdZips/" + user_specific_id
+        #if not os.path.exists(zip_folder_name):
+        #    os.makedirs(zip_folder_name)
 
-        full_zip_path = zip_folder_name + "/" + zip_filename
-        shutil.make_archive(full_zip_path, "zip", "createdFolders/" + user_specific_id)
+        #full_zip_path = zip_folder_name + "/" + zip_filename
+        #shutil.make_archive(full_zip_path, "zip", "createdFolders/" + user_specific_id)
 
         #if os.path.exists("createdFolders/" + user_specific_id):
         #    shutil.rmtree("createdFolders/" + user_specific_id)
 
-    except Exception as e:
-        print("File zipping error: ", e)
-        if os.path.exists("createdFolders/" + user_specific_id):
-            shutil.rmtree("createdFolders/" + user_specific_id)
-        return "File zipping error: " + str(e), 404
+    #except Exception as e:
+    #    print("File zipping error: ", e)
+    #    if os.path.exists("createdFolders/" + user_specific_id):
+    #        shutil.rmtree("createdFolders/" + user_specific_id)
+    #    return "File zipping error: " + str(e), 404
 
     return user_specific_id, 200
 
