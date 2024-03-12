@@ -28,7 +28,7 @@ app.secret_key = os.urandom(24).hex()
 
 @app.route("/downloadFile/<fileName>", methods=["GET"])
 def downloaddFile(fileName):
-    complete_file_path = "createdZips/" + fileName + "/Inputs.zip"
+    complete_file_path = "createdZips/" + fileName + "/Test_Data.zip"
     abs_path = os.path.abspath(complete_file_path)
 
     if not os.path.isfile(abs_path):
@@ -66,7 +66,7 @@ def upload_code(userId):
                 continue
             new_name = file_name_without_extension + ".out"
             new_path="input.txt"
-            print(userId+" Path: "+new_path)
+            #print(userId+" Path: "+new_path)
             shutil.copy(folder_name+"/"+file_name,new_path)
             #burada kodu derle ve calistir outa yazilan seyi de yeni isme kaydet. sonra dosyalari zipe at sonra sil!...
             run_string='./result'
@@ -79,7 +79,10 @@ def upload_code(userId):
             if(file_extension==".cpp"):
                 os.remove(folder_name+"/"+file_name)
                 break
-        zip_filename = "Inputs"
+        os.remove("input.txt");
+        os.remove("output.txt");
+        os.remove("result");
+        zip_filename = "Test_Data"
         zip_folder_name = "createdZips/" + userId
         if not os.path.exists(zip_folder_name):
             os.makedirs(zip_folder_name)
