@@ -56,32 +56,7 @@ def upload_code(userId):
         folder_name = "./createdFolders/" + userId
         code_file.save("./createdFolders/"+str(userId)+"/"+code_file.filename)
         files=os.listdir(folder_name)
-        compile_string='g++ ' +folder_name+"/"+code_file.filename+' -o ' + 'result'
-        os.system(compile_string)
-        for file_name in files:
-            file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
-            if(file_extension==".out"):
-                continue
-            if(file_extension==".cpp"):
-                continue
-            new_name = file_name_without_extension + ".out"
-            new_path="input.txt"
-            #print(userId+" Path: "+new_path)
-            shutil.copy(folder_name+"/"+file_name,new_path)
-            #burada kodu derle ve calistir outa yazilan seyi de yeni isme kaydet. sonra dosyalari zipe at sonra sil!...
-            run_string='./result'
-            os.system(run_string)
-            shutil.copy("output.txt",folder_name+"/"+new_name)
-            
-        #print(code_file.filename + " user id: " + userId)
-        for file_name in files:
-            file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
-            if(file_extension==".cpp"):
-                os.remove(folder_name+"/"+file_name)
-                break
-        os.remove("input.txt");
-        os.remove("output.txt");
-        os.remove("result");
+        output_maker(code_file,folder_name,files)
         zip_filename = "Test_Data"
         zip_folder_name = "createdZips/" + userId
         if not os.path.exists(zip_folder_name):
@@ -96,6 +71,87 @@ def upload_code(userId):
     
     return "Code is not uploaded", 400
 
+def output_maker(code_file,folder_name,files):
+    compile_string='g++ ' +folder_name+"/"+code_file.filename+' -o ' + 'result'
+    os.system(compile_string)
+    for file_name in files:
+            print(file_name)
+            file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
+            if(file_extension==".out"):
+                continue
+            if(file_extension==".cpp"):
+                continue
+            new_name = file_name_without_extension + ".out"
+            new_path="input.txt"
+            print(new_path +"HELLO FRIENDSSS")
+            #print(userId+" Path: "+new_path)
+            shutil.copy(folder_name+"/"+file_name,new_path)
+            #burada kodu derle ve calistir outa yazilan seyi de yeni isme kaydet. sonra dosyalari zipe at sonra sil!...
+            run_string='./result'
+            os.system(run_string)
+            shutil.copy("output.txt",folder_name+"/"+new_name)
+
+    #print(code_file.filename + " user id: " + userId)
+    for file_name in files:
+        file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
+        if(file_extension==".cpp"):
+          os.remove(folder_name+"/"+file_name)
+          break
+    os.remove("input.txt")
+    os.remove("output.txt")
+    os.remove("result")
+
+@app.route("/hacking_file/<userId>", methods=["POST"])
+def hacking_files(userId):
+        if 'codeFile' not in request.files:
+            return "Cannot send the code1",404
+        if 'codeFile2' not in request.files:
+            return "Cannot send the code2",404
+        file1 = request.files["codeFile"]
+        file2 = request.files["codeFile2"]
+        if os.path.exists("./createdFolders/"+userId):
+            print("VAR "+ file1.filename + " "+file2.filename)
+        os.mkdir("./createdFolders/"+str(userId)+"/"+"first_file")
+        os.mkdir("./createdFolders/"+str(userId)+"/"+"second_file")
+        file1.save("./createdFolders/"+str(userId)+"/"+"first_file/" + file1.filename)
+        file2.save("./createdFolders/"+str(userId)+"/"+"second_file/" + file2.filename)   
+        folder_name = "./createdFolders/" + userId
+        inputfiles=os.listdir(folder_name)
+        for file_name in inputfiles:
+            if file_name=="first_file":
+                continue
+            if file_name=="second_file":
+                continue
+            shutil.copy(folder_name+"/"+file_name,folder_name+"/"+"first_file/"+os.path.basename(os.path.abspath(file_name)))
+            shutil.copy(folder_name+"/"+file_name,folder_name+"/"+"second_file/"+os.path.basename(os.path.abspath(file_name)))
+        folder1_name = folder_name +"/"+"first_file"
+        folder2_name = folder_name +"/"+"second_file"
+        files1=os.listdir(folder_name +"/"+"first_file")
+        output_maker(file1,folder1_name,files1)
+        files2=os.listdir(folder_name +"/"+"second_file")
+        output_maker(file2,folder2_name,files2)
+        outputs_created=os.listdir(folder_name+"/first_file")
+        for file_name in outputs_created:
+            file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
+            if(file_extension!=".out"):
+                os.remove(folder1_name+"/"+file_name)
+        outputs_created=os.listdir(folder_name+"/first_file")
+        for file_name in outputs_created:
+            print(file_name)
+            compare_files(folder1_name + "/" + file_name ,folder2_name + "/" + file_name)
+        print("HELLO HELLO HELLO HOW ARE YOU")
+        return "HELLO BE ADAM",200
+
+def compare_files(file1_path, file2_path):
+    # Read the contents of both files
+    with open(file1_path, 'r') as file1:
+        file1_contents = file1.read()
+    with open(file2_path, 'r') as file2:
+        file2_contents = file2.read()
+
+    # Compare the contents
+    if file1_contents != file2_contents:
+        return "Your code is not correct, an input have found that do not have same answer in both codes",404
 
 @app.route("/createFile", methods=["POST"])
 def create_file():
