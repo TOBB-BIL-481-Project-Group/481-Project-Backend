@@ -25,9 +25,7 @@ CORS(app, methods=["POST", "GET", "DELETE", "PUT"])
 app.config["CORS_HEADERS"] = "*"
 app.secret_key = os.urandom(24).hex()
 
-@app.route("/home")
-def bos():
-    return "merhaba"
+
 
 @app.route("/signup",methods=["POST"])
 def signup():
@@ -48,8 +46,7 @@ def signup():
             cur.execute("INSERT INTO logins (Name,Email,Password) VALUES (%s,%s,%s)",(name,email,password))
             db.commit()
         except Exception as e:
-            print("Error: ", e)
-            return "Input creation or file creation error:  " + str(e), 500
+            return str(e),500
         cur.close()
         db.close()
         return "Success", 200
@@ -68,17 +65,21 @@ def login():
         name = datas.get("name")
         email = datas.get("email")
         password = datas.get("password")
-        print(datas)
         cur = db.cursor()
-      #  try:
-       #     cur.execute("INSERT INTO logins (Name,Email,Password) VALUES (%s,%s,%s)",(name,email,password))
-        #    db.commit()
-        #except Exception as e:
-         #   print("Error: ", e)
-          #  return "Input creation or file creation error:  " + str(e), 404
+        cur.execute("SELECT Password FROM logins WHERE Email = %s",(email))
+        result = cur.fetchall()
+        cur.execute("SELECT Password FROM logins WHERE Password = %s",(password))
+        pwd = cur.fetchall()
+        if result:
+            if pwd:
+                deneme =5
+            else:
+                return "yaprak",404
+        else: 
+            return "deneme",500
         cur.close()
         db.close()
-        return redirect(url_for('bos'))
+        return "good"
 
 
 @app.route("/downloadFile/<fileName>", methods=["GET"])
