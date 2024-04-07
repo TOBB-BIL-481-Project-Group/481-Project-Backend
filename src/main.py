@@ -165,6 +165,11 @@ def output_maker(code_file,folder_name,files):
     os.remove("input.txt")
     os.remove("output.txt")
     #os.remove("result")
+    try:
+        os.remove("result")
+    except Exception as e:
+        os.remove(folder_name+"/"+code_file.filename)
+    
 
 @app.route("/hacking_file/<userId>", methods=["POST"])
 def hacking_files(userId):
