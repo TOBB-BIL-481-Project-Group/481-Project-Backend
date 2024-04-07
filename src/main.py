@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify,redirect,url_for
 from flask_cors import CORS
 import os
 import sys
@@ -6,7 +6,7 @@ import uuid
 import shutil
 import time
 import random
-import subprocess
+import pymysql
 
 sys.path.append("./creations")
 from creations import (
@@ -24,6 +24,61 @@ app = Flask(__name__)
 CORS(app, methods=["POST", "GET", "DELETE", "PUT"])
 app.config["CORS_HEADERS"] = "*"
 app.secret_key = os.urandom(24).hex()
+
+@app.route("/home")
+def bos():
+    return "merhaba"
+
+@app.route("/signup",methods=["POST"])
+def signup():
+    if request.method == "POST":
+        db = pymysql.connect(
+            host="sql11.freesqldatabase.com",
+            user="sql11697146",
+            password = "sGY9RrziWs",
+            db="sql11697146",
+            port=3306,
+        )
+        datas = request.get_json()
+        name = datas.get("name")
+        email = datas.get("email")
+        password = datas.get("password")
+        cur = db.cursor()
+        try:
+            cur.execute("INSERT INTO logins (Name,Email,Password) VALUES (%s,%s,%s)",(name,email,password))
+            db.commit()
+        except Exception as e:
+            print("Error: ", e)
+            return "Input creation or file creation error:  " + str(e), 500
+        cur.close()
+        db.close()
+        return "Success", 200
+    
+@app.route("/",methods=["POST"])
+def login():
+    if request.method == "POST":
+        db = pymysql.connect(
+            host="sql11.freesqldatabase.com",
+            user="sql11697146",
+            password = "sGY9RrziWs",
+            db="sql11697146",
+            port=3306,
+        )
+        datas = request.get_json()
+        name = datas.get("name")
+        email = datas.get("email")
+        password = datas.get("password")
+        print(datas)
+        cur = db.cursor()
+      #  try:
+       #     cur.execute("INSERT INTO logins (Name,Email,Password) VALUES (%s,%s,%s)",(name,email,password))
+        #    db.commit()
+        #except Exception as e:
+         #   print("Error: ", e)
+          #  return "Input creation or file creation error:  " + str(e), 404
+        cur.close()
+        db.close()
+        return redirect(url_for('bos'))
 
 
 @app.route("/downloadFile/<fileName>", methods=["GET"])
@@ -138,7 +193,8 @@ def hacking_files(userId):
         outputs_created=os.listdir(folder_name+"/first_file")
         for file_name in outputs_created:
             print(file_name)
-            compare_files(folder1_name + "/" + file_name ,folder2_name + "/" + file_name)
+            if compare_files(folder1_name + "/" + file_name ,folder2_name + "/" + file_name)==True:
+                return "Your code is not correct, an input have found that do not have same answer in both codes",404
         print("HELLO HELLO HELLO HOW ARE YOU")
         return "HELLO BE ADAM",200
 
@@ -151,7 +207,9 @@ def compare_files(file1_path, file2_path):
 
     # Compare the contents
     if file1_contents != file2_contents:
-        return "Your code is not correct, an input have found that do not have same answer in both codes",404
+        return True
+        
+    return False
 
 @app.route("/createFile", methods=["POST"])
 def create_file():
