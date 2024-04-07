@@ -127,14 +127,20 @@ def upload_code(userId):
     return "Code is not uploaded", 400
 
 def output_maker(code_file,folder_name,files):
-    compile_string='g++ ' +folder_name+"/"+code_file.filename+' -o ' + 'result'
+    compile_string=""
+    code_name_without_extension, code_extension = os.path.splitext(os.path.basename(os.path.abspath(code_file.filename)))
+    print(code_name_without_extension + code_extension)
+    if(code_extension==".cpp"):
+        compile_string='g++ ' +folder_name+"/"+code_file.filename+' -o ' + 'result'
+    else:
+        compile_string='javac ' +folder_name+"/"+code_file.filename
     os.system(compile_string)
     for file_name in files:
             print(file_name)
             file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
             if(file_extension==".out"):
                 continue
-            if(file_extension==".cpp"):
+            if(file_extension==".cpp" or file_extension==".java"):
                 continue
             new_name = file_name_without_extension + ".out"
             new_path="input.txt"
@@ -142,19 +148,22 @@ def output_maker(code_file,folder_name,files):
             #print(userId+" Path: "+new_path)
             shutil.copy(folder_name+"/"+file_name,new_path)
             #burada kodu derle ve calistir outa yazilan seyi de yeni isme kaydet. sonra dosyalari zipe at sonra sil!...
-            run_string='./result'
+            if(code_extension==".cpp"):
+                run_string='./result'
+            else:
+                run_string='java '+folder_name+"/"+code_file.filename
             os.system(run_string)
             shutil.copy("output.txt",folder_name+"/"+new_name)
 
     #print(code_file.filename + " user id: " + userId)
     for file_name in files:
         file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
-        if(file_extension==".cpp"):
+        if(file_extension==".cpp" or file_extension==".java"):
           os.remove(folder_name+"/"+file_name)
           break
     os.remove("input.txt")
     os.remove("output.txt")
-    os.remove("result")
+    #os.remove("result")
 
 @app.route("/hacking_file/<userId>", methods=["POST"])
 def hacking_files(userId):
