@@ -1,4 +1,4 @@
-from flask import Flask, request, send_file
+from flask import Flask, request, send_file, jsonify,redirect,url_for
 from flask_cors import CORS
 import os
 import sys
@@ -6,7 +6,7 @@ import uuid
 import shutil
 import time
 import random
-import subprocess
+import pymysql
 
 sys.path.append("./creations")
 from creations import (
@@ -25,6 +25,60 @@ CORS(app, methods=["POST", "GET", "DELETE", "PUT"])
 app.config["CORS_HEADERS"] = "*"
 app.secret_key = os.urandom(24).hex()
 
+@app.route("/home")
+def bos():
+    return "merhaba"
+
+@app.route("/signup",methods=["POST"])
+def signup():
+    if request.method == "POST":
+        db = pymysql.connect(
+            host="sql11.freesqldatabase.com",
+            user="sql11697146",
+            password = "sGY9RrziWs",
+            db="sql11697146",
+            port=3306,
+        )
+        datas = request.get_json()
+        name = datas.get("name")
+        email = datas.get("email")
+        password = datas.get("password")
+        cur = db.cursor()
+        try:
+            cur.execute("INSERT INTO logins (Name,Email,Password) VALUES (%s,%s,%s)",(name,email,password))
+            db.commit()
+        except Exception as e:
+            print("Error: ", e)
+            return "Input creation or file creation error:  " + str(e), 500
+        cur.close()
+        db.close()
+        return "Success", 200
+    
+@app.route("/",methods=["POST"])
+def login():
+    if request.method == "POST":
+        db = pymysql.connect(
+            host="sql11.freesqldatabase.com",
+            user="sql11697146",
+            password = "sGY9RrziWs",
+            db="sql11697146",
+            port=3306,
+        )
+        datas = request.get_json()
+        name = datas.get("name")
+        email = datas.get("email")
+        password = datas.get("password")
+        print(datas)
+        cur = db.cursor()
+      #  try:
+       #     cur.execute("INSERT INTO logins (Name,Email,Password) VALUES (%s,%s,%s)",(name,email,password))
+        #    db.commit()
+        #except Exception as e:
+         #   print("Error: ", e)
+          #  return "Input creation or file creation error:  " + str(e), 404
+        cur.close()
+        db.close()
+        return redirect(url_for('bos'))
 
 @app.route("/downloadFile/<fileName>", methods=["GET"])
 def downloaddFile(fileName):
@@ -79,9 +133,9 @@ def upload_code(userId):
             if(file_extension==".cpp"):
                 os.remove(folder_name+"/"+file_name)
                 break
-        os.remove("input.txt");
-        os.remove("output.txt");
-        os.remove("result");
+        os.remove("input.txt")
+        os.remove("output.txt")
+        os.remove("result")
         zip_filename = "Test_Data"
         zip_folder_name = "createdZips/" + userId
         if not os.path.exists(zip_folder_name):
