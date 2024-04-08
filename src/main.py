@@ -130,14 +130,14 @@ def upload_code(userId):
 def output_maker(code_file,folder_name,files):
     compile_string=""
     code_name_without_extension, code_extension = os.path.splitext(os.path.basename(os.path.abspath(code_file.filename)))
-    print(code_name_without_extension + code_extension)
+    #print(code_name_without_extension + code_extension)
     if(code_extension==".cpp"):
         compile_string='g++ ' +folder_name+"/"+code_file.filename+' -o ' + 'result'
     else:
         compile_string='javac ' +folder_name+"/"+code_file.filename
     os.system(compile_string)
     for file_name in files:
-            print(file_name)
+            #print(file_name)
             file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
             if(file_extension==".out"):
                 continue
@@ -145,7 +145,6 @@ def output_maker(code_file,folder_name,files):
                 continue
             new_name = file_name_without_extension + ".out"
             new_path="input.txt"
-            print(new_path +"HELLO FRIENDSSS")
             #print(userId+" Path: "+new_path)
             shutil.copy(folder_name+"/"+file_name,new_path)
             #burada kodu derle ve calistir outa yazilan seyi de yeni isme kaydet. sonra dosyalari zipe at sonra sil!...
@@ -179,21 +178,34 @@ def hacking_files(userId):
             return "Cannot send the code2",404
         file1 = request.files["codeFile"]
         file2 = request.files["codeFile2"]
-        if os.path.exists("./createdFolders/"+userId):
-            print("VAR "+ file1.filename + " "+file2.filename)
+        #if os.path.exists("./createdFolders/"+userId):
+        #    print("VAR "+ file1.filename + " "+file2.filename)
         os.mkdir("./createdFolders/"+str(userId)+"/"+"first_file")
         os.mkdir("./createdFolders/"+str(userId)+"/"+"second_file")
+        os.mkdir("./createdFolders/"+str(userId)+"/"+"inputsOnly")
         file1.save("./createdFolders/"+str(userId)+"/"+"first_file/" + file1.filename)
         file2.save("./createdFolders/"+str(userId)+"/"+"second_file/" + file2.filename)   
         folder_name = "./createdFolders/" + userId
         inputfiles=os.listdir(folder_name)
+        inputExtension=""
+        counter=0
+        #print("Line 193 has visited")
         for file_name in inputfiles:
             if file_name=="first_file":
                 continue
             if file_name=="second_file":
                 continue
-            shutil.copy(folder_name+"/"+file_name,folder_name+"/"+"first_file/"+os.path.basename(os.path.abspath(file_name)))
-            shutil.copy(folder_name+"/"+file_name,folder_name+"/"+"second_file/"+os.path.basename(os.path.abspath(file_name)))
+            if file_name=="inputsOnly":
+                continue
+            counter=counter+1
+            #print("Line 200 has visited")
+            file_name_without_extension, inputExtension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
+            shutil.copy(folder_name+"/"+file_name,folder_name+"/"+"first_file/"+file_name_without_extension+inputExtension)
+            #print("Line 203 has visited")
+            shutil.copy(folder_name+"/"+file_name,folder_name+"/"+"second_file/"+file_name_without_extension+inputExtension)
+            shutil.copy(folder_name+"/"+file_name,folder_name+"/"+"inputsOnly/"+file_name_without_extension+inputExtension)
+        if(counter==0):
+            return "Please create positive number of tests",370
         folder1_name = folder_name +"/"+"first_file"
         folder2_name = folder_name +"/"+"second_file"
         files1=os.listdir(folder_name +"/"+"first_file")
@@ -201,17 +213,40 @@ def hacking_files(userId):
         files2=os.listdir(folder_name +"/"+"second_file")
         output_maker(file2,folder2_name,files2)
         outputs_created=os.listdir(folder_name+"/first_file")
+        #print("Line 215 has visited")
         for file_name in outputs_created:
             file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
+            if(file_extension==inputExtension):
+                shutil.copy(folder1_name+"/"+file_name,folder_name+"/"+"inputsOnly/"+os.path.basename(os.path.abspath(file_name)))
             if(file_extension!=".out"):
                 os.remove(folder1_name+"/"+file_name)
         outputs_created=os.listdir(folder_name+"/first_file")
+        flag=False
         for file_name in outputs_created:
-            print(file_name)
-            if compare_files(folder1_name + "/" + file_name ,folder2_name + "/" + file_name)==True:
-                return "Your code is not correct, an input have found that do not have same answer in both codes",404
-        print("HELLO HELLO HELLO HOW ARE YOU")
-        return "HELLO BE ADAM",200
+            #print(file_name)
+            if compare_files(folder1_name + "/" + file_name ,folder2_name + "/" + file_name)==False:
+                file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
+                os.remove(folder_name+"/inputsOnly/"+file_name_without_extension+inputExtension)
+            else:
+                flag=True
+        if(flag==False):
+            if os.path.exists("createdFolders/" + userId):
+                shutil.rmtree("createdFolders/" + userId)
+            return "The both codes works similar because any different output cannot be found for inputs!",404
+        else:
+            zip_filename = "Test_Data"
+            zip_folder_name = "createdZips/" + userId
+            if not os.path.exists(zip_folder_name):
+                os.makedirs(zip_folder_name)
+            full_zip_path = zip_folder_name + "/" + zip_filename
+            #print(folder1_name)
+            #print(os.listdir(folder1_name))
+            shutil.make_archive(full_zip_path, "zip", folder_name+"/inputsOnly")
+            #shutil.make_archive(full_zip_path, "zip", folder1_name)
+            if os.path.exists("createdFolders/" + userId):
+                shutil.rmtree("createdFolders/" + userId)
+            return userId,200
+
 
 def compare_files(file1_path, file2_path):
     # Read the contents of both files
