@@ -136,6 +136,7 @@ def output_maker(code_file,folder_name,files):
     else:
         compile_string='javac ' +folder_name+"/"+code_file.filename
     os.system(compile_string)
+    print(os.listdir(folder_name))
     for file_name in files:
             #print(file_name)
             file_name_without_extension, file_extension = os.path.splitext(os.path.basename(os.path.abspath(file_name)))
@@ -151,7 +152,9 @@ def output_maker(code_file,folder_name,files):
             if(code_extension==".cpp"):
                 run_string='./result'
             else:
+                print(code_file.filename)
                 run_string='java '+folder_name+"/"+code_file.filename
+                print(run_string)
             os.system(run_string)
             shutil.copy("output.txt",folder_name+"/"+new_name)
 
@@ -161,13 +164,16 @@ def output_maker(code_file,folder_name,files):
         if(file_extension==".cpp" or file_extension==".java"):
           os.remove(folder_name+"/"+file_name)
           break
-    os.remove("input.txt")
-    os.remove("output.txt")
+    try:
+        os.remove("input.txt")
+        os.remove("output.txt")
+    except Exception as e:
+        return "Either you are not using input.txt or output.txt for the input-output stream",237
     #os.remove("result")
     try:
         os.remove("result")
     except Exception as e:
-        os.remove(folder_name+"/"+code_file.filename)
+        os.remove(folder_name+"/"+code_name_without_extension+".class")
     
 
 @app.route("/hacking_file/<userId>", methods=["POST"])
