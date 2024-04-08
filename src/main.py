@@ -68,7 +68,7 @@ def login():
         cur = db.cursor()
         cur.execute("SELECT Password FROM logins WHERE Email = %s",(email))
         result = cur.fetchall()
-        cur.execute("SELECT Password FROM logins WHERE Password = %s",(password))
+        cur.execute("SELECT Password FROM logins WHERE Password = %s and Email = %s",(password,email))
         pwd = cur.fetchall()
         if result:
             if pwd:
